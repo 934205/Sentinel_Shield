@@ -10,7 +10,6 @@ exports.Display_Schedule = async (req, res) => {
 
         
         const { data, error } = await query;
-        console.log(data);
         
 
         if (error) {

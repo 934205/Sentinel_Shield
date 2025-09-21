@@ -68,7 +68,7 @@ app.use('/api',StudentsInsideCampus)
 
 
 
-app.listen(process.env.PORT, () => {
+app.listen(process.env.PORT||5000, () => {
     console.log(`Server is running at http://localhost:${process.env.PORT}`);
 });
 

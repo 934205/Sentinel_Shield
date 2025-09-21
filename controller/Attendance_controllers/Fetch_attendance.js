@@ -59,15 +59,17 @@ exports.Fetch_attendance = async (req, res) => {
 
         // Generate file name
         const fileName = `Attendance_${dept_year_id}_${date}.xlsx`;
-        const filePath = path.join(__dirname, "..","..", "public", fileName);
         
+        // Set headers for download
+        res.setHeader(
+        "Content-Type",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        );
+        res.setHeader("Content-Disposition", `attachment; filename=${fileName}`);
 
-        // Write file
-        XLSX.writeFile(wb, filePath);
-
-        // Return download link
-        const downloadUrl = `${req.protocol}://${req.get("host")}/public/${fileName}`;
-        res.json({ success: true, url: downloadUrl });
+        // Write workbook to buffer and send
+        const buffer = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
+        res.send(buffer);
         
     } catch (error) {
         return res.status(500).json({ message: error.message, success: false });
