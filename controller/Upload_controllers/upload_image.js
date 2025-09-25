@@ -6,6 +6,10 @@ exports.Upload_Image = async (req, res) => {
 
   if (!reg_no) return res.status(400).json({ success: false, error: "Missing reg_no" });
   if (!req.file) return res.status(400).json({ success: false, error: "No file uploaded" });
+  console.log(reg_no);
+  console.log(req.file);
+  
+  
 
   try {
     // Use timestamp to create unique filename
