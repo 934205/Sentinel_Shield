@@ -12,6 +12,8 @@ const otpStore = {};
 
 exports.Login = async (req, res) => {
     try {        
+        console.log(req.url);
+        
         let mobile  = req.query.mobile; // Get mobile number from query
         mobile="+91"+mobile
         console.log(mobile);
