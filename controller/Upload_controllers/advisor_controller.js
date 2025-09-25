@@ -4,7 +4,8 @@ const supabase = require("../../config/supabase")
 exports.upload_advisor = (req,res,next)=>{
     const fetchUsers = async () => {
         try{
-            const body=req.body        
+            const body=req.body                    
+            
 
             const {data,error} = await supabase
             .from("advisor")

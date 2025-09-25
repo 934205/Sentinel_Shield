@@ -8,5 +8,4 @@ const authmiddleware=require("../../controller/auth/middleware")
 router.route('/display_schedule').get(authmiddleware,Display_Schedule)
 
 
-
 module.exports = router

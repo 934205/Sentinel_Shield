@@ -7,14 +7,19 @@ exports.Fetch_departments = async (req, res) => {
 
         let query = supabase
             .from("dept_years")
-            .select("*"); // Ensure inner join
+            .select("*")
+            
 
         const { data, error } = await query;
 
         if (error) {
             return res.status(500).json({ message: "Error fetching data", success: false, error: error.message });
         }
-        return res.json({ success: true, departments: data });
+
+        const deptNames = [...new Set(data.map(item => item.dept_name))];
+        const Years = [...new Set(data.map(item => item.dept_year))];
+
+        return res.json({ success: true, departments: deptNames, years: Years, dept_with_years:data });
     } catch (error) {
         return res.status(500).json({ message: error.message, success: false });
     }

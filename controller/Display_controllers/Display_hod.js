@@ -1,13 +1,13 @@
 const supabase = require("../../config/supabase");
 
-exports.Display_Advisor = async (req, res) => {
+exports.Display_Hod = async (req, res) => {
     
     try {
 
         let query = supabase
             .from("advisor")
             .select("advisor_id, name, mobile_number,dept_year_id, dept_years!inner(dept_name, dept_year)")
-            .eq("role","advisor")
+            .eq("role","hod")
 
 
         const { data, error } = await query;

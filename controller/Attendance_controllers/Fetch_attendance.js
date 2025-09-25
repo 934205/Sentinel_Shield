@@ -3,14 +3,43 @@ const XLSX = require("xlsx");
 const fs = require("fs");
 const path = require("path");
 
-exports.Fetch_attendance = async (req, res) => {
+// 🔹 Helper to generate Excel and return download URL
+async function generateExcel(data, fileName, req, res) {
+    if (!data || data.length === 0) {
+        return res.json({ success: false, message: "No attendance records found" });
+    }
+
+    const formattedData = data.map(item => ({
+        "Register No": item.reg_no,
+        "Student Name": item.student.name,
+        "Department Name": item.student.dept_years.dept_name,
+        "Year": item.student.dept_years.dept_year,
+        "Date": item.date,
+        "Entry Time": item.entry_time,
+        "Exit Time": item.exit_time,
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(formattedData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Attendance");
+
+    const publicDir = path.join(__dirname, "..", "..", "public");
+    if (!fs.existsSync(publicDir)) fs.mkdirSync(publicDir, { recursive: true });
+
+    const filePath = path.join(publicDir, fileName);
+    XLSX.writeFile(wb, filePath);
+
+    const downloadUrl = `${req.protocol}://${req.get("host")}/public/${fileName}`;
+    return res.json({ success: true, url: downloadUrl });
+}
+
+// 🔹 Advisor
+exports.Fetch_attendance_advisor = async (req, res) => {
     try {
         const dept_year_id = req.user.dept_year_id;
         const date = req.query.date;
-        console.log("Generating attendance for:", date);
 
-        // 🔹 Query attendance data
-        let query = supabase
+        const { data, error } = await supabase
             .from("location_logs")
             .select(`
                 reg_no,
@@ -29,52 +58,96 @@ exports.Fetch_attendance = async (req, res) => {
             .eq("student.dept_year_id", dept_year_id)
             .eq("date", date);
 
-        const { data, error } = await query;
-        if (error) {
-            console.error("Supabase error:", error.message);
-            return res.json({
-                message: "Error fetching data",
-                success: false,
-                error: error.message,
-            });
-        }
+        if (error) throw error;
 
-        // 🔹 Format data for Excel
-        const formattedData = data.map((item) => ({
-            "Register No": item.reg_no,
-            "Student Name": item.student.name,
-            "Department Name": item.student.dept_years.dept_name,
-            "Year": item.student.dept_years.dept_year,
-            "Date": item.date,
-            "Entry Time": item.entry_time,
-            "Exit Time": item.exit_time,
-        }));
+        const fileName = `Attendance_Advisor_${dept_year_id}_${date}.xlsx`;
+        return generateExcel(data, fileName, req, res);
 
-        // 🔹 Create workbook
-        const ws = XLSX.utils.json_to_sheet(formattedData);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Attendance");
-
-        // 🔹 Ensure public folder exists
-        const publicDir = path.join(__dirname, "..", "..", "public");
-        if (!fs.existsSync(publicDir)) {
-            fs.mkdirSync(publicDir, { recursive: true });
-        }
-
-        // 🔹 Generate file name & path
-        const fileName = `Attendance_${dept_year_id}_${date}.xlsx`;
-        const filePath = path.join(publicDir, fileName);
-
-        // 🔹 Write file to /public
-        XLSX.writeFile(wb, filePath);
-
-        // 🔹 Return download link
-        const downloadUrl = `${req.protocol}://${req.get("host")}/public/${fileName}`;
-        return res.json({ success: true, url: downloadUrl });
     } catch (error) {
-        console.error("Server error:", error.message);
-        return res
-            .status(500)
-            .json({ message: error.message, success: false });
+        console.error("Advisor error:", error.message);
+        return res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// 🔹 HOD
+exports.Fetch_attendance_hod = async (req, res) => {
+    try {
+        const year = Number(req.query.year); // ensure number
+        const date = req.query.date;
+
+        const { data: deptData, error: deptError } = await supabase
+            .from("dept_years")
+            .select("dept_name")
+            .eq("dept_year_id", req.user.dept_year_id)
+            .single();
+
+        if (deptError) throw deptError;
+
+        const { data, error } = await supabase
+            .from("location_logs")
+            .select(`
+                reg_no,
+                entry_time,
+                exit_time,
+                date,
+                student!inner(
+                    name,
+                    dept_year_id,
+                    dept_years!inner(
+                        dept_name,
+                        dept_year
+                    )
+                )
+            `)
+            .eq("student.dept_years.dept_name", deptData.dept_name)
+            .eq("student.dept_years.dept_year", year)
+            .eq("date", date);
+
+        if (error) throw error;
+
+        const fileName = `Attendance_HOD_${deptData.dept_name}_${year}_${date}.xlsx`;
+        return generateExcel(data, fileName, req, res);
+
+    } catch (error) {
+        console.error("HOD error:", error.message);
+        return res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// 🔹 Dean
+exports.Fetch_attendance_dean = async (req, res) => {
+    try {
+        const dept_name = req.query.dept;
+        const year = Number(req.query.year);
+        const date = req.query.date;
+
+        const { data, error } = await supabase
+            .from("location_logs")
+            .select(`
+                reg_no,
+                entry_time,
+                exit_time,
+                date,
+                student!inner(
+                    name,
+                    dept_year_id,
+                    dept_years!inner(
+                        dept_name,
+                        dept_year
+                    )
+                )
+            `)
+            .eq("student.dept_years.dept_name", dept_name)
+            .eq("student.dept_years.dept_year", year)
+            .eq("date", date);
+
+        if (error) throw error;
+
+        const fileName = `Attendance_Dean_${dept_name}_${year}_${date}.xlsx`;
+        return generateExcel(data, fileName, req, res);
+
+    } catch (error) {
+        console.error("Dean error:", error.message);
+        return res.status(500).json({ success: false, message: error.message });
     }
 };

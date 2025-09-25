@@ -43,6 +43,8 @@ exports.Login = async (req, res) => {
             res.json({ success: true, message: 'OTP sent' });
 
         } catch (err) {
+            console.log(err);
+            
             return res.status(500).json({ success: false, message: err.message });
         }
 
@@ -51,13 +53,13 @@ exports.Login = async (req, res) => {
     }
 };
 
+
 // -------------------------
 // Verify OTP and generate JWT
 exports.VerifyOtp = async (req, res) => {
     try {
         let { mobile, otp } = req.body;
-        mobile="+91"+mobile
-        
+                
         
 
         if (!otpStore[mobile] || otpStore[mobile] != otp) {
@@ -70,6 +72,7 @@ exports.VerifyOtp = async (req, res) => {
             .select("mobile_number, dept_year_id, role")
             .eq("mobile_number", mobile)
             .single();
+        
 
         if (error || !data) {
             return res.status(404).json({ success: false, message: "Advisor not found" });
@@ -88,6 +91,7 @@ exports.VerifyOtp = async (req, res) => {
         return res.json({ success: true, token });
 
     } catch (err) {
+        
         return res.status(500).json({ success: false, message: err.message });
     }
 };
