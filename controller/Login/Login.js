@@ -87,7 +87,7 @@ exports.VerifyOtp = async (req, res) => {
             role: data.role
         };
 
-        const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1d' });
+        const token = jwt.sign(payload, process.env.JWT_SECRET);
         delete otpStore[mobile]; // remove OTP after verification
 
         return res.json({ success: true, token });
