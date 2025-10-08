@@ -1,17 +1,43 @@
 const supabase = require("../../config/supabase");
 
 exports.Display_student_inside_campus = async (req, res) => {
-    
-    try {
-    // Call your Postgres function
-    const { data, error } = await supabase.rpc('get_students_inside_campus');
+  try {
+    const { data, error } = await supabase
+      .from("location_logs")
+      .select(`
+        reg_no,
+        student (
+          name,
+          gender,
+          hosteller,
+          mobile_number,
+          emergency_mobile_number,
+          dept_year_id,
+          dept_years:dept_year_id (
+            dept_name,
+            dept_year
+          )
+        )
+      `)
+      .eq("inside", true);
 
     if (error) {
       return res.status(500).json({ error: error.message });
     }
 
-    res.json(data); // return the list of students inside campus
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+    // Flatten the data for easier frontend use
+    const studentsInside = data.map(item => ({
+      reg_no: item.reg_no,
+      name: item.student.name,
+      gender: item.student.gender,
+      hosteller: item.student.hosteller,
+      dept_year_id: item.student.dept_year_id,
+      dept_name: item.student.dept_years?.dept_name || null,
+      dept_year: item.student.dept_years?.dept_year || null,
+    }));
+
+    res.json(studentsInside);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
