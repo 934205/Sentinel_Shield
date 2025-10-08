@@ -15,6 +15,7 @@ exports.Display_Profile = async (req, res) => {
         .select("advisor_id, name, mobile_number,role, dept_year_id, dept_years!inner(dept_name, dept_year)")
         .eq("dept_year_id", user.dept_year_id)
         .eq("role",user.role)
+        .eq("mobile_number",user.mobile_number)
                 
     } else {
       query = supabase
