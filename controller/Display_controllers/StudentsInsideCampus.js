@@ -28,6 +28,9 @@ exports.Display_student_inside_campus = async (req, res) => {
       return res.status(500).json({ error: error.message });
     }
 
+    console.log(data);
+    
+
     // Flatten the data for easier frontend use
     const studentsInside = data.map(item => ({
       reg_no: item.reg_no,
