@@ -15,21 +15,18 @@ exports.Display_student_inside_campus = async (req, res) => {
           mobile_number,
           emergency_mobile_number,
           dept_year_id,
-          student_dept_year_id_fkey (
+          dept_years:dept_year_id (
             dept_name,
             dept_year
           )
         )
       `)
       .eq("inside", true)
-      .eq("date", today);
+      .eq("date",today);
 
     if (error) {
       return res.status(500).json({ error: error.message });
     }
-
-    console.log(data);
-    
 
     // Flatten the data for easier frontend use
     const studentsInside = data.map(item => ({
@@ -43,6 +40,9 @@ exports.Display_student_inside_campus = async (req, res) => {
       dept_name: item.student.dept_years?.dept_name || null,
       dept_year: item.student.dept_years?.dept_year || null,
     }));
+
+    console.log(studentsInside);
+    
 
     res.json(studentsInside);
   } catch (err) {
