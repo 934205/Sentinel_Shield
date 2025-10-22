@@ -8,7 +8,7 @@ exports.Display_student_inside_campus = async (req, res) => {
       .from("location_logs")
       .select(`
         reg_no,
-        student (
+        student:reg_no (
           name,
           gender,
           hosteller,
