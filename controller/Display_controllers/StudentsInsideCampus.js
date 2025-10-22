@@ -35,6 +35,8 @@ exports.Display_student_inside_campus = async (req, res) => {
       gender: item.student.gender,
       hosteller: item.student.hosteller,
       dept_year_id: item.student.dept_year_id,
+      mobile_number: item.student.mobile_number,
+      emergency_mobile_number: item.student.emergency_mobile_number,
       dept_name: item.student.dept_years?.dept_name || null,
       dept_year: item.student.dept_years?.dept_year || null,
     }));
