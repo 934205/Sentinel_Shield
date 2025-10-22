@@ -2,6 +2,8 @@ const supabase = require("../../config/supabase");
 
 exports.Display_student_inside_campus = async (req, res) => {
   try {
+    const today = new Date().toISOString().split('T')[0];
+
     const { data, error } = await supabase
       .from("location_logs")
       .select(`
@@ -19,7 +21,8 @@ exports.Display_student_inside_campus = async (req, res) => {
           )
         )
       `)
-      .eq("inside", true);
+      .eq("inside", true)
+      .eq("date",today);
 
     if (error) {
       return res.status(500).json({ error: error.message });
